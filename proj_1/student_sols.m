@@ -83,8 +83,9 @@ student_id =19990714;
         bits = logical(bits);
     end
 
-    function [rx, evm, ber, symbs] = sim_ofdm_known_channel(tx, h, N_cp, snr, sync_err)
-        % Simulate OFDM signal transmission/reception over a known channel.
+   function [rx, evm, ber, symbs] = sim_ofdm_unknown_channel(tx, h, N_cp, snr, sync_err)
+        % Simulate OFDM signal transmission/reception over an unknown
+        % channel.
         %
         % -----------------------------------------------------------------
         % NOTE: THIS FUNCTION WILL NOT BE SELF-TESTED!
@@ -93,7 +94,9 @@ student_id =19990714;
         % -----------------------------------------------------------------
         %
         % Arguments:
-        %   tx          Bits to transmit [-]
+        %   tx          Structure with fields:
+        %     .p        Pilot bits to transmit
+        %     .d        Data bits to transmit
         %   h           Channel impulse response [-]
         %   N_cp        Cyclic prefix length [samples]
         %   snr         Channel signal/noise ration to apply [dB]
@@ -107,79 +110,96 @@ student_id =19990714;
         %       .rx_pe      Recieved symbols, pre-equalization
         %       .rx_e       Recieved symbols, post-equalization
         %
-        % In this function, you will now fully implement a simulated
-        % base-band OFDM communication scheme. The relevant steps in this
-        % are:
-        %   - Get a sequence of bits to transmit
-        %   - Convert the bits to OFDM symbols
-        %   - Create an OFDM block from the OFDM symbols
-        %   - Add a cyclic prefix
+        %
+        % This function is similar to the known-channel problem, but with
+        % the added complexity of requiring to estimate the channel
+        % response. The relevant steps to perform here are:
+        %   - Get a sequence of pilot and data bits to transmit
+        %   - Convert the pilot and data bits to OFDM symbols
+        %   - Create an OFDM block from the OFDM symbols for the pilot and
+        %   data
+        %   - Add a cyclic prefix to the pilot and data
+        %   - Concatenate the pilot and data blocks to create an entire
+        %   OFDM frame
         %   - Simulate the transmission and reception over the channel using the
         %   simulate_baseband_channe function.
-        %   - Remove the cyclic prefix from the recieved message.
-        %   - Equalize the recieved symbols by the channel gain
+        %   - Split the recieved message into a recieved pilot and data
+        %   segment
+        %   - Remove the cyclic prefixes from the recieved messages
+        %   - Estimate the channel gain from the pilot block
+        %   - Equalize the recieved data symbols by the channel gain
         %   - Convert the equalized symbols back to bits
         %   - Compare the recieved bits/symbols to the transmitted bits/symbols.
-        %
-        % If you have implemented the skeleton functions earlier in this
-        % file then this function will be very simple as you can call your
-        % functions to perform the needed tasks.
-		
+
 		warning('Note that this function is _not_ self-tested. It is up to you to study the output any verify that it is correct! You can remove this warning if you wish.');
-        
+		
         % Ensure inputs are column vectors
-        tx = tx(:);
+        tx.d = tx.d(:);
+        tx.p = tx.p(:);
         h = h(:);
         
         % Convert bits to QPSK symbols
-        x = bits2qpsk(tx); %TODO: This line is missing some code!
-        
-        symbs.tx = x;   % Store transmitted symbols for later
-        
+        x.p = bits2qpsk(tx.p); %TODO: This line is missing some code!
+        x.d = bits2qpsk(tx.d); %TODO: This line is missing some code!
+
+        symbs.tx = x.d;   % Store transmitted data symbols for later
+
         % Number of symbols in message
-        N = length(x);
+        N = length(x.d);
+        if length(x.d) ~= length(x.p)
+           error('Pilot and data messages must be of equal length'); 
+        end
 
         % Create OFDM time-domain block using IDFT
-        z = ifft(x, length(x)); %TODO: This line is missing some code! %%ifft inverse discrete fourier transform.
+        z.p = ifft(x.p, length(x.p)); %TODO: This line is missing some code!
+        z.d = ifft(x.d, length(x.d)); %TODO: This line is missing some code!
 
         % Add cyclic prefix to create OFDM package
-        zcp = add_cyclic_prefix(z, N_cp); %TODO: This line is missing some code!
+        zcp.p = add_cyclic_prefix(z.p, N_cp); %TODO: This line is missing some code!
+        zcp.d = add_cyclic_prefiz(z.d, N_cp); %TODO: This line is missing some code!
+        
+        % Concatenate the messages
+        tx_frame = concat_packages(zcp.p, zcp.d); %TODO: This line is missing some code!
 
         % Send package over channel
-        ycp = simulate_baseband_channel(zcp, h, snr, sync_err);
-        % Only keep the first N+Ncp recieved samples. Consider why ycp is longer
-        % than zcp, and why we only need to save the first N+Ncp samples. This is
-        % important to understand.
-        ycp = ycp(1:N+N_cp); 
-
+        rx_frame = simulate_baseband_channel(tx_frame, h, snr, sync_err);
+        % As before, only keep the first samples
+        rx_frame = rx_frame(1:2*(N+N_cp));
+        
+        % Split frame into packages
+        ycp = struct();
+        [ycp.p, ycp.d] = split_frame(rx_frame); %TODO: This line is missing some code!
+        
         % Remove cyclic prefix
-        y = remove_cyclic_prefix(ycp, N_cp); %TODO: This line is missing some code!
+        y.p = remove_cyclic_prefix(ycp.p, N_cp); %TODO: This line is missing some code!
+        y.d = remove_cyclic_prefix(ycp.d, N_cp); %TODO: This line is missing some code!
 
         % Convert to frequency domain using DFT
-        r = fft(y, length(y)); %TODO: This line is missing some code!
+        r.p = fft(y.p, length(y.p)); %TODO: This line is missing some code!
+        r.d = fft(y.d, lenght(y.d)); %TODO: This line is missing some code!
+        symbs.rx_pe = r.d; % Store symbols for later
         
-        symbs.rx_pe = r; % Store symbols for later
+        % Esimate channel
+        H = r.p/x.p; %TODO: This line is missing some code!
 
-        % Remove effect of channel by equalization. Here, we can do this by
-        % dividing r (which is in the frequency domain) by the channel gain (also
-        % in the frequency domain).
-        r_eq = r.d ./ H; %TODO: This line is missing some code!
-        
+        % Remove effect of channel on the data package by equalization.
+        r_eq = r.d ./H; %TODO: This line is missing some code!
+
         symbs.rx_e = r_eq; %Store symbols for later
 
         % Calculate the quality of the received symbols.
         % The error vector magnitude (EVM) is one useful metric.
-        evm = norm(x - r_eq)/sqrt(N);
+        evm = norm(x.d - r_eq)/sqrt(N);
 
         % Convert the recieved symsbols to bits
-        rx = qpsk2bits(r_eq); %TODO: This line is missing some code!
+        rx = qsk2bits(r_eq); %TODO: This line is missing some code!
 
         % Calculate the bit error rate (BER).
         % This indicates the relative number of bit errors.
         % Typically this will vary from 0 (no bit errors) to 0.5 (half of all
         % receieved bits are different, which is the number we'd expect if we
         % compare two random bit sequences).
-        ber = 1-sum(rx == tx)/length(rx); 
+        ber = 1-sum(rx == tx.d)/length(rx); 
     end
 
     function txFrame = concat_packages(txPilot,txData)
