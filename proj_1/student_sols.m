@@ -59,7 +59,7 @@ student_id =19990714;
             error('bits must be of even length');
         end
 
-      symb = (bits(1:2:end) + 1i * bits(2:2:end)) / sqrt(2); %TODO: This line is missing some code!
+        symb = (bits(1:2:end) + 1i * bits(2:2:end)) / sqrt(2); %TODO: This line is missing some code!
     end
 
     function bits  = qpsk2bits(x)
@@ -140,7 +140,7 @@ student_id =19990714;
         N = length(x);
 
         % Create OFDM time-domain block using IDFT
-        z = ifft(x, length(x)); %TODO: This line is missing some code! %%ifft inverse discrete fourier transform.
+        z = ifft(x, N); %TODO: This line is missing some code! %%ifft inverse discrete fourier transform.
 
         % Add cyclic prefix to create OFDM package
         zcp = add_cyclic_prefix(z, N_cp); %TODO: This line is missing some code!
@@ -156,14 +156,14 @@ student_id =19990714;
         y = remove_cyclic_prefix(ycp, N_cp); %TODO: This line is missing some code!
 
         % Convert to frequency domain using DFT
-        r = fft(y, length(y)); %TODO: This line is missing some code!
+        r = fft(y, N); %TODO: This line is missing some code!
         
         symbs.rx_pe = r; % Store symbols for later
 
         % Remove effect of channel by equalization. Here, we can do this by
         % dividing r (which is in the frequency domain) by the channel gain (also
         % in the frequency domain).
-        r_eq = r.d ./ H; %TODO: This line is missing some code!
+        r_eq = r ./ fft(h, N); %TODO: This line is missing some code!
         
         symbs.rx_e = r_eq; %Store symbols for later
 
@@ -271,8 +271,8 @@ student_id =19990714;
         end
 
         % Create OFDM time-domain block using IDFT
-        z.p =  ifft(x.p, length(x.p)); %TODO: This line is missing some code!
-        z.d = ifft(x.d, length(x.d)); %TODO: This line is missing some code!
+        z.p = ifft(x.p, N); %TODO: This line is missing some code!
+        z.d = ifft(x.d, N); %TODO: This line is missing some code!
 
         % Add cyclic prefix to create OFDM package
         zcp.p = add_cyclic_prefix(z.p, N_cp); %TODO: This line is missing some code!
@@ -295,8 +295,8 @@ student_id =19990714;
         y.d = remove_cyclic_prefix(ycp.d, N_cp); %TODO: This line is missing some code!
 
         % Convert to frequency domain using DFT
-        r.p = fft(y.p, length(y.p)); %TODO: This line is missing some code!
-        r.d = fft(y.d, length(y.d)); %TODO: This line is missing some code!
+        r.p = fft(y.p, N); %TODO: This line is missing some code!
+        r.d = fft(y.d, N); %TODO: This line is missing some code!
         symbs.rx_pe = r.d; % Store symbols for later
         
         % Esimate channel
@@ -558,36 +558,21 @@ student_id =19990714;
         ber = 1-sum(rx == tx.d)/length(rx); 
     end
 
-clear;
-tx.d = [0 1 0 1 0 0 0 0 1 1 1 1];
-tx.p = [1 1 1 1 1 1 1 1 1 1 1 1];
-disp(tx)
-%tx.d = transpose(tx);
-%disp(tx)
-h=1
-N_cp=1
-snr=0
-sync_err=0
-[rx, evm, ber, symbs] = sim_ofdm_unknown_channel(tx, h, N_cp, snr, sync_err);
-rx
-evm
-ber
-symbs
 % Generate structure with handles to functions
-% funs.add_cyclic_prefix = @add_cyclic_prefix;
-% funs.remove_cyclic_prefix = @remove_cyclic_prefix;
-% funs.bits2qpsk = @bits2qpsk;
-% funs.qpsk2bits = @qpsk2bits;
-% funs.sim_ofdm_known_channel = @sim_ofdm_known_channel;
-% funs.concat_packages = @concat_packages;
-% funs.split_frame = @split_frame;
-% funs.sim_ofdm_unknown_channel = @sim_ofdm_unknown_channel;
-% 
-% funs.frame_interpolate = @frame_interpolate;
-% funs.frame_decimate = @frame_decimate;
-% funs.frame_modulate = @frame_modulate;
-% funs.sim_ofdm_audio_channel = @sim_ofdm_audio_channel;
-% 
+funs.add_cyclic_prefix = @add_cyclic_prefix;
+funs.remove_cyclic_prefix = @remove_cyclic_prefix;
+funs.bits2qpsk = @bits2qpsk;
+funs.qpsk2bits = @qpsk2bits;
+funs.sim_ofdm_known_channel = @sim_ofdm_known_channel;
+funs.concat_packages = @concat_packages;
+funs.split_frame = @split_frame;
+funs.sim_ofdm_unknown_channel = @sim_ofdm_unknown_channel;
+
+funs.frame_interpolate = @frame_interpolate;
+funs.frame_decimate = @frame_decimate;
+funs.frame_modulate = @frame_modulate;
+funs.sim_ofdm_audio_channel = @sim_ofdm_audio_channel;
+
 
 % This file will return a structure with handles to the functions you have
 % implemented. You can call them if you wish, for example:
