@@ -300,7 +300,7 @@ student_id =19990714;
         symbs.rx_pe = r.d; % Store symbols for later
         
         % Esimate channel
-        H = r.p ./ x.p ; %TODO: This line is missing some code!
+        H = r.p ./ x.p; %TODO: This line is missing some code!
 
         % Remove effect of channel on the data package by equalization.
         r_eq = r.d ./ H; %TODO: This line is missing some code!

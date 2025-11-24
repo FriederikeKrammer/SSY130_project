@@ -6,7 +6,7 @@ function plot_constallation(tx, rx)
 clf;
 c = linspace(0, length(rx), length(rx));
 sz = linspace(10, 60, length(rx));
-scatter(real(rx), imag(rx), sz, c);
+scatter(real(rx), imag(rx), sz, c, LineWidth=1.5);
 h_c = colorbar();
 title(h_c, 'symbol index');
 hold on;
