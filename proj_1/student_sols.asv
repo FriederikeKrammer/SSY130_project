@@ -502,7 +502,7 @@ student_id = 19990714;
         
         % Modulate the upsampled signal
         theta= f_c / f_s;
-        tx_frame_mod = frame_modulate(tx_frame_us,theta); %TODO: This line is missing some code!
+        tx_frame_mod = frame_modulate(tx_frame,theta); %TODO: This line is missing some code!
         
         % Discard the imaginary part of the signal for transmission over a
         % scalar channel (simulation of audio over air)
@@ -515,7 +515,7 @@ student_id = 19990714;
         rx_frame_raw = rx_frame_raw(rx_idx:rx_idx + length(tx_frame_final));
         
         % Demodulate to bring the signal back to the baseband
-        rx_frame_us = frame_modulate(rx_frame_raw, -theta); %TODO: This line is missing some code!
+        rx_frame_us = 0; %TODO: This line is missing some code!
         
         % Decimate the signal to bring the sample rate back to the original
         rx_frame = frame_decimate(rx_frame_us, L);
@@ -525,7 +525,7 @@ student_id = 19990714;
         
         % Split frame into packages
         ycp = struct();
-        [ycp.p, ycp.d] = split_frame(rx_frame); %TODO: This line is missing some code!
+        [ycp.p, ycp.d] = 0; %TODO: This line is missing some code!
         
         % Remove cyclic prefix
         y.p = remove_cyclic_prefix(ycp.p,N_cp); %TODO: This line is missing some code!
@@ -537,7 +537,7 @@ student_id = 19990714;
         symbs.rx_pe = r.d; % Store symbols for later
         
         % Esimate channel
-        H = r.p ./ x.p; %TODO: This line is missing some code!
+        H = r.p ./ ; %TODO: This line is missing some code!
 
         % Remove effect of channel on the data package by equalization.
         r_eq = r.p ./ x.p; %TODO: This line is missing some code!

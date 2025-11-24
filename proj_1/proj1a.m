@@ -86,9 +86,9 @@ funs = student_sols();
 % project report.
 
 N = 272;         % Number of OFDM (QPSK) symbols to transmit.   
-N_cp = 0;        % Length of cyclic prefix
+N_cp = 60;        % Length of cyclic prefix
 snr = inf;       % Receiver side SNR [dB]
-sync_err = 0;    % Negative values imply early frame sync
+sync_err =0;    % Negative values imply early frame sync
 channel_known = true;   %Set true to use the known channel, false to use the unknown channel
 
 % Text to send, must correspond to at least N OFDM symbols
@@ -119,18 +119,20 @@ pilot = string2bits(pilot_str);
 %h = zeros(60,1); h(1) = 0.5; % Ideal, scaled magnitude
 %h = zeros(60,1); h(1) = exp(1j*1/2);    % Ideal, phase shift by 1/2 radian (~28 degrees)
 h = 0.8.^(0:59)';            % LP model
+%h = 0.99.^(0:59)';            % LP model question 2c
 %h = zeros(60,1); h(1) = 0.5; h(9) = 0.5; % Multipath (2 paths)
+%h = zeros(60,1); h(1) = 0.5; h(9) = 0.4; % Multipath (2 paths) question 3c
 %h = randn(60,1);             % Random Gaussian 
 
 % Plot the channel response
 figure(1);
 subplot(2,1,1);
 title('Channel response');
-plot(abs(fft(h, N)));
+plot(abs(fft(h, N)), 'LineWidth',1.5);
 xlabel('k');
 ylabel('|H(k)|');
 subplot(2,1,2);
-plot(angle(fft(h, N)));
+plot(angle(fft(h, N)),'LineWidth',1.5);
 xlabel('k');
 ylabel('arg(H(k))');
 
@@ -161,7 +163,7 @@ else
     % Draw a constellation plot of the recieved symbols, pre- and post-equalization
     % Recieved symbols are drawn in varying sizes so symbols in repeated
     % locations will be visible
-    figure(2);
+    figurfe(2);
     plot_constallation(symbs.tx, symbs.rx_pe);
     title('Pre-equalization symbol constellation');
 
