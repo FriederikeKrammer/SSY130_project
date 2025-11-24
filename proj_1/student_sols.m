@@ -514,7 +514,7 @@ student_id = 19990714;
         rx_frame_raw = rx_frame_raw(rx_idx:rx_idx + length(tx_frame_final));
         
         % Demodulate to bring the signal back to the baseband
-        rx_frame_us = frame_modulate(rx_frame_raw, f_s/f_s); %TODO: This line is missing some code!
+        rx_frame_us = frame_modulate(rx_frame_raw, -f_c/f_s); %TODO: This line is missing some code!
         
         % Decimate the signal to bring the sample rate back to the original
         rx_frame = frame_decimate(rx_frame_us, L);
